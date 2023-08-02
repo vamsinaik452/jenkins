@@ -1,0 +1,44 @@
+apiVersion: v1
+	kind: Service
+	metadata:
+	  name: html-deploy
+	  labels:
+	    app: html-app
+	spec:
+	  ports:
+	    - port: 80
+	  selector:
+	    app: html-app
+	    tier: frontend
+	  type: NodePort
+	---
+	apiVersion: apps/v1
+	kind: Deployment
+	metadata:
+	  name: html-deploy
+	spec:
+	  replicas: 1
+	  selector:
+	    matchLabels:
+	      app: html-app
+	    matchExpressions:
+	     - {key: tier, operator: In, values: [frontend]}
+	  template:
+	    metadata: 
+	      name: html-pod
+	      labels:
+	        app: html-app
+	        tier: frontend
+	    spec:
+	      containers:
+	      - name: html-con
+	        image: httpd:latest
+	        ports:
+	        - containerPort: 80
+	        volumeMounts:
+	        - name: deploy-pvc
+	          mountPath: /usr/local/apache2/htdocs/
+	      volumes:
+	      - name: deploy-pvc
+	        persistentVolumeClaim:
+	          claimName: deploy-pvc
