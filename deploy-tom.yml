@@ -1,0 +1,44 @@
+apiVersion: v1
+	kind: Service
+	metadata:
+	  name: tom-deploy
+	  labels:
+	    app: tom-app
+	spec:
+	  ports:
+	    - port: 80
+	  selector:
+	    app: tom-app
+	    tier: frontend
+	  type: NodePort
+	---
+	apiVersion: apps/v1
+	kind: Deployment
+	metadata:
+	  name: tom-deploy
+	spec:
+	  replicas: 1
+	  selector:
+	    matchLabels:
+	      app: tom-app
+	    matchExpressions:
+	     - {key: tier, operator: In, values: [frontend]}
+	  template:
+	    metadata: 
+	      name: tom-pod
+	      labels:
+	        app: tom-app
+	        tier: frontend
+	    spec:
+	      containers:
+	      - name: tom-con
+	        image: vimal13/tomcat8:latest
+	        ports:
+	        - containerPort: 80
+	        volumeMounts:
+	        - name: deploy-pvc
+	          mountPath: /opt/tomcat/webapps
+	      volumes:
+	      - name: deploy-pvc
+	        persistentVolumeClaim:
+	          claimName: deploy-pvc
